@@ -93,7 +93,7 @@ File eksternal berisi data **transaksi pembelian** dengan format sebagai berikut
 ```
 Nomor Akun | Jenis Barang | Penyedia | Nomor Tujuan | Mata Uang | Jumlah | Saldo | Tanggal Transaksi
 ```
-Catatan: `Nomor Akun` yang ada di daftar transaksi harus merupakan salah satu `Nomor Aku`n di data rekening online. Field ini digunakan untuk menyatakan bahwa nomor akun tersebut adalah yang terlibat dalam transaksi. Field Nomor Tujuan digunakan untuk mencatat nomor telepon, nomor rekening listrik, atau nomor rekening taksi online. Field `Saldo` berisi saldo rekening setelah terjadi transaksi.
+Catatan: `Nomor Akun` yang ada di daftar transaksi harus merupakan salah satu `Nomor Akun` di data rekening online. Field ini digunakan untuk menyatakan bahwa nomor akun tersebut adalah yang terlibat dalam transaksi. Field Nomor Tujuan digunakan untuk mencatat nomor telepon, nomor rekening listrik, atau nomor rekening taksi online. Field `Saldo` berisi saldo rekening setelah terjadi transaksi.
 
 Contoh:
 ```
