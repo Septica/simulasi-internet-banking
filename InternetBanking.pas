@@ -13,8 +13,7 @@ type
     end;
     TRekeningOnline = record
         nomorAkun, nomorNasabah, jenisRekening, mataUang, rekeningAutodebet : string;
-        saldo, setoranRutin : longint;
-        jangkaWaktu : double;
+        saldo, setoranRutin, jangkaWaktu : longint;
         tanggalMulai : TDateTime;
     end;
     TTransaksiSetoranPenarikan = record
@@ -42,8 +41,7 @@ type
         kursAsal, kursTujuan : string;
     end;
     TBarang = record
-        jenisBarang : string;
-        penyedia : string;
+        jenisBarang, penyedia : string;
         harga : longint;
     end;
 
@@ -119,7 +117,7 @@ end;
 procedure DeleteRekening(i : integer; var rekeningOnlineArray : TRekeningOnlineArray);
 (* ALGORITMA *)
 begin
-    if i > 0 then
+    if (i > 0) and (i <= rekeningOnlineArray.Neff) then
     begin
         rekeningOnlineArray.Neff := rekeningOnlineArray.Neff - 1;
         for i := i to rekeningOnlineArray.Neff do
@@ -194,10 +192,13 @@ end;
 function generateNomorAkun(i, n : integer; t : string) : string;
 (* ALGORITMA *)
 begin
-    if t = '1' then t := 'DP' else
-    if t = '2' then t := 'TR' else
-    if t = '3' then t := 'TM' else
-        t := 'UK';
+    case t of
+        '1' : t := 'DP';
+        '2' : t := 'TR';
+        '3' : t := 'TM';
+        else t:= 'UK';
+    end;
+
     generateNomorAkun := IntToStr(i mod 10) + t + Format('%.2d', [n]) + IntToStr((i * n) mod 10);
 end;
 
@@ -230,7 +231,7 @@ begin
                 defineRekeningAutoDebet := '-'
             else
             begin
-                indexRekening := GetIndexRekening(nomorAkun, tabunganMandiri_rekeningOnlineArray);
+                indexRekening := GetIndexRekening(nomorAkun, rekeningOnlineArray);
                 if indexRekening > 0 then
                     if isOwner(indexRekening, current_nasabah) then
                         defineRekeningAutoDebet := nomorAkun
@@ -317,6 +318,8 @@ begin
         read(barangFile, barangArray.T[barangArray.Neff]);
     end;
     close(barangFile);
+
+    writeln('Pembacaan file berhasil');
 end;
 
 (* Tugas *)
@@ -330,97 +333,101 @@ var
 begin
     write('nama file: ');
     readln(fileName);
-
-    if fileName = 'nasabah.bin' then
-    begin
-        assign(nasabahFile, 'nasabah.bin');
-        reset(nasabahFile);
-        while not Eof(nasabahFile) do
-        begin
-            nasabahArray.Neff := nasabahArray.Neff + 1;
-            read(nasabahFile, nasabahArray.T[nasabahArray.Neff]);
-        end;
-        close(nasabahFile);
-    end else
-    if fileName = 'rekeningonline.bin' then
-    begin
-        assign(rekeningOnlineFile, 'rekeningonline.bin');
-        reset(rekeningOnlineFile);
-        while not Eof(rekeningOnlineFile) do
-        begin
-            rekeningOnlineArray.Neff := rekeningOnlineArray.Neff + 1;
-            read(rekeningOnlineFile, rekeningOnlineArray.T[rekeningOnlineArray.Neff]);
-        end;
-        close(rekeningOnlineFile);
-    end else
-    if fileName = 'transaksisetoranpenarikan.bin' then
-    begin
-        assign(transaksiSetoranPenarikanFile, 'transaksisetoranpenarikan.bin');
-        reset(transaksiSetoranPenarikanFile);
-        while not Eof(transaksiSetoranPenarikanFile) do
-        begin
-            transaksiSetoranPenarikanArray.Neff := transaksiSetoranPenarikanArray.Neff + 1;
-            read(transaksiSetoranPenarikanFile, transaksiSetoranPenarikanArray.T[transaksiSetoranPenarikanArray.Neff]);
-        end;
-        close(transaksiSetoranPenarikanFile);
-    end else
-    if fileName = 'transaksitransfer.bin' then
-    begin
-        assign(transaksiTransferFile, 'transaksitransfer.bin');
-        reset(transaksiTransferFile);
-        while not Eof(transaksiTransferFile) do
-        begin
-            transaksiTransferArray.Neff := transaksiTransferArray.Neff + 1;
-            read(transaksiTransferFile, transaksiTransferArray.T[transaksiTransferArray.Neff]);
-        end;
-        close(transaksiTransferFile);
-    end else
-    if fileName = 'pembayaran.bin' then
-    begin
-        assign(pembayaranFile, 'pembayaran.bin');
-        reset(pembayaranFile);
-        while not Eof(pembayaranFile) do
-        begin
-            pembayaranArray.Neff := pembayaranArray.Neff + 1;
-            read(pembayaranFile, pembayaranArray.T[pembayaranArray.Neff]);
-        end;
-        close(pembayaranFile);
-    end else
-    if fileName = 'pembelian.bin' then
-    begin
-        assign(pembelianFile, 'pembelian.bin');
-        reset(pembelianFile);
-        while not Eof(pembelianFile) do
-        begin
-            pembelianArray.Neff := pembelianArray.Neff + 1;
-            read(pembelianFile, pembelianArray.T[pembelianArray.Neff]);
-        end;
-        close(pembelianFile);
-    end else
-    if fileName = 'nilaitukarantarmatauang.bin' then
-    begin
-        assign(nilaiTukarAntarMataUangFile, 'nilaitukarantarmatauang.bin');
-        reset(nilaiTukarAntarMataUangFile);
-        while not Eof(nilaiTukarAntarMataUangFile) do
-        begin
-            nilaiTukarAntarMataUangArray.Neff := nilaiTukarAntarMataUangArray.Neff + 1;
-            read(nilaiTukarAntarMataUangFile, nilaiTukarAntarMataUangArray.T[nilaiTukarAntarMataUangArray.Neff]);
-        end;
-        close(nilaiTukarAntarMataUangFile);
-    end else
-    if fileName = 'barang.bin' then
-    begin
-        assign(barangFile, 'barang.bin');
-        reset(barangFile);
-        while not Eof(barangFile) do
-        begin
-            barangArray.Neff := barangArray.Neff + 1;
-            read(barangFile, barangArray.T[barangArray.Neff]);
-        end;
-        close(barangFile);
-    end;
-
-    writeln('Pembacaan file berhasil');
+    if FileExists(fileName) then
+        case fileName of
+            'nasabah.bin' : begin
+                assign(nasabahFile, 'nasabah.bin');
+                reset(nasabahFile);
+                while not Eof(nasabahFile) do
+                begin
+                    nasabahArray.Neff := nasabahArray.Neff + 1;
+                    read(nasabahFile, nasabahArray.T[nasabahArray.Neff]);
+                end;
+                close(nasabahFile);
+                writeln('Pembacaan file berhasil');
+            end;
+            'rekeningonline.bin' : begin
+                assign(rekeningOnlineFile, 'rekeningonline.bin');
+                reset(rekeningOnlineFile);
+                while not Eof(rekeningOnlineFile) do
+                begin
+                    rekeningOnlineArray.Neff := rekeningOnlineArray.Neff + 1;
+                    read(rekeningOnlineFile, rekeningOnlineArray.T[rekeningOnlineArray.Neff]);
+                end;
+                close(rekeningOnlineFile);
+                writeln('Pembacaan file berhasil');
+            end;
+            'transaksisetoranpenarikan.bin' : begin
+                assign(transaksiSetoranPenarikanFile, 'transaksisetoranpenarikan.bin');
+                reset(transaksiSetoranPenarikanFile);
+                while not Eof(transaksiSetoranPenarikanFile) do
+                begin
+                    transaksiSetoranPenarikanArray.Neff := transaksiSetoranPenarikanArray.Neff + 1;
+                    read(transaksiSetoranPenarikanFile, transaksiSetoranPenarikanArray.T[transaksiSetoranPenarikanArray.Neff]);
+                end;
+                close(transaksiSetoranPenarikanFile);
+                writeln('Pembacaan file berhasil');
+            end;
+            'transaksitransfer.bin' : begin
+                assign(transaksiTransferFile, 'transaksitransfer.bin');
+                reset(transaksiTransferFile);
+                while not Eof(transaksiTransferFile) do
+                begin
+                    transaksiTransferArray.Neff := transaksiTransferArray.Neff + 1;
+                    read(transaksiTransferFile, transaksiTransferArray.T[transaksiTransferArray.Neff]);
+                end;
+                close(transaksiTransferFile);
+                writeln('Pembacaan file berhasil');
+            end;
+            'pembayaran.bin' : begin
+                assign(pembayaranFile, 'pembayaran.bin');
+                reset(pembayaranFile);
+                while not Eof(pembayaranFile) do
+                begin
+                    pembayaranArray.Neff := pembayaranArray.Neff + 1;
+                    read(pembayaranFile, pembayaranArray.T[pembayaranArray.Neff]);
+                end;
+                close(pembayaranFile);
+                writeln('Pembacaan file berhasil');
+            end;
+            'pembelian.bin' : begin
+                assign(pembelianFile, 'pembelian.bin');
+                reset(pembelianFile);
+                while not Eof(pembelianFile) do
+                begin
+                    pembelianArray.Neff := pembelianArray.Neff + 1;
+                    read(pembelianFile, pembelianArray.T[pembelianArray.Neff]);
+                end;
+                close(pembelianFile);
+                writeln('Pembacaan file berhasil');
+            end;
+            'nilaitukarantarmatauang.bin' : begin
+                assign(nilaiTukarAntarMataUangFile, 'nilaitukarantarmatauang.bin');
+                reset(nilaiTukarAntarMataUangFile);
+                while not Eof(nilaiTukarAntarMataUangFile) do
+                begin
+                    nilaiTukarAntarMataUangArray.Neff := nilaiTukarAntarMataUangArray.Neff + 1;
+                    read(nilaiTukarAntarMataUangFile, nilaiTukarAntarMataUangArray.T[nilaiTukarAntarMataUangArray.Neff]);
+                end;
+                close(nilaiTukarAntarMataUangFile);
+                writeln('Pembacaan file berhasil');
+            end;
+            'barang.bin' : begin
+                assign(barangFile, 'barang.bin');
+                reset(barangFile);
+                while not Eof(barangFile) do
+                begin
+                    barangArray.Neff := barangArray.Neff + 1;
+                    read(barangFile, barangArray.T[barangArray.Neff]);
+                end;
+                close(barangFile);
+                writeln('Pembacaan file berhasil');
+            end;
+            else
+                writeln('Pembacaan file gagal');
+        end
+    else
+        writeln('File tidak ditemukan.');
 end;
 
 procedure Login();
@@ -452,6 +459,7 @@ begin
 
             if nasabahArray.T[i].password = password then
             begin
+                triesArray[i] := 0;
                 index_nasabah := i;
                 current_nasabah := nasabahArray.T[i].nomorNasabah;
                 writeln('Login berhasil. Selamat datang ', nasabahArray.T[i].username,'!');
@@ -468,7 +476,7 @@ begin
         end else
             writeln('Status nasabah inaktif.')
     else
-        writeln('Username atau password tidak tepat. Silakan coba lagi.');
+        writeln('Username tidak ditemukan. Silakan coba lagi.');
 end;
 
 procedure LihatRekening();
@@ -482,6 +490,7 @@ procedure InformasiSaldo();
 var
     temp_rekeningOnlineArray : TRekeningOnlineArray;
     yy, mm, dd : Word;
+    jangkaWaktu : string = '';
 
     input : string;
     i : integer;
@@ -496,26 +505,28 @@ begin
 
     write('Jenis rekening: ');
     readln(input);
-    if input = '1' then
-    begin
-        input := 'Deposito';
-        temp_rekeningOnlineArray := getRekening(current_nasabah, false, false, true);
-    end else if input = '2' then
-    begin
-        input := 'Tabungan Rencana';
-        temp_rekeningOnlineArray := getRekening(current_nasabah, false, true, false);
-    end else if input = '3' then
-    begin
-        input := 'Tabungan Mandiri';
-        temp_rekeningOnlineArray := getRekening(current_nasabah, true, false, false);
-    end else
-        isValid := false;
+    case LowerCase(input) of
+        '1', 'deposito' : begin
+            input := 'Deposito';
+            temp_rekeningOnlineArray := getRekening(current_nasabah, false, false, true);
+        end;
+        '2', 'tabungan rencana' : begin
+            input := 'Tabungan Rencana';
+            temp_rekeningOnlineArray := getRekening(current_nasabah, false, true, false);
+        end;
+        '3', 'tabungan mandiri' : begin
+            input := 'Tabungan Mandiri';
+            temp_rekeningOnlineArray := getRekening(current_nasabah, true, false, false);
+        end;
+        else
+            isValid := false;
+    end;
 
     if isValid then
         if temp_rekeningOnlineArray.Neff > 0 then
         begin
             writeln('Pilih rekening ', input, ' Anda:');
-            for i := 1 to temp_rekeningOnlineArray.Neff do writeln(i, '. ', temp_rekeningOnlineArray.T[i].nomorAkun);
+            WriteRekening(temp_rekeningOnlineArray);
 
             write('Rekening ', input, ': ');
             readln(input);
@@ -528,9 +539,13 @@ begin
                     DeCodeDate(temp_rekeningOnlineArray.T[i].tanggalMulai, yy, mm, dd);
                     writeln(format('Tanggal mulai: %d-%d-%d', [dd,mm,yy]));
                     writeln('Mata uang: ', temp_rekeningOnlineArray.T[i].mataUang);
-                    writeln('Jangka waktu: ', temp_rekeningOnlineArray.T[i].jangkaWaktu:0:0, ' hari');
+                    if temp_rekeningOnlineArray.T[i].jangkaWaktu div 365 > 0 then jangkaWaktu := IntToStr(temp_rekeningOnlineArray.T[i].jangkaWaktu div 365) + ' tahun ';
+                    if temp_rekeningOnlineArray.T[i].jangkawaktu mod 365 div 30 > 0 then jangkaWaktu := jangkawaktu + IntToStr(temp_rekeningOnlineArray.T[i].jangkawaktu mod 365 div 30) + ' bulan ';
+                    if temp_rekeningOnlineArray.T[i].jangkaWaktu mod 30 > 0 then jangkawaktu := jangkaWaktu + IntToStr(temp_rekeningOnlineArray.T[i].jangkawaktu mod 30) + ' hari ';
+                    writeln('Jangka waktu: ', jangkaWaktu);
                     writeln('Setoran rutin: ', temp_rekeningOnlineArray.T[i].setoranRutin);
                     writeln('Saldo: ', temp_rekeningOnlineArray.T[i].saldo);
+                    writeln('Rekening autodebet: ', temp_rekeningOnlineArray.T[i].rekeningAutodebet);
                 end else
                     writeln('Anda tidak mempunyai rekening ', input, '.')
             else
@@ -559,16 +574,18 @@ begin
 
     writeln('Periode aktivitas: ');
     readln(value, unitOfTime);
-    if unitOfTime = ' tahun' then periode := round(value * 365) else
-    if unitOfTime = ' bulan' then periode := round(value * 30) else
-    if unitOfTime = ' hari' then periode := round(value) else isValid := false;
+    case unitOfTime of
+        ' tahun' : periode := round(value * 365);
+        ' bulan' : periode := round(value * 30);
+        ' hari' : periode := round(value);
+        else isValid := false;
+    end;
 
     if isValid then
         if (1 <= periode) and (periode <= 90) then
             for i := 1 to temp_rekeningOnlineArray.Neff do
             begin
                 for j := 1 to transaksiSetoranPenarikanArray.Neff do
-                begin
                     if temp_rekeningOnlineArray.T[i].nomorAkun = transaksiSetoranPenarikanArray.T[j].nomorAkun then
                         if Date - periode <= transaksiSetoranPenarikanArray.T[j].tanggalTransaksi then
                         begin
@@ -580,10 +597,8 @@ begin
                             DeCodeDate(transaksiSetoranPenarikanArray.T[j].tanggalTransaksi, yy, mm, dd);
                             writeln(format('Tanggal transaksi: %d-%d-%d', [dd,mm,yy]));
                         end;
-                end;
 
                 for j := 1 to transaksiTransferArray.Neff do
-                begin
                     if temp_rekeningOnlineArray.T[i].nomorAkun = transaksiTransferArray.T[j].nomorAkunAsal then
                         if Date - periode <= transaksiTransferArray.T[j].tanggalTransaksi then
                         begin
@@ -597,12 +612,9 @@ begin
                             DeCodeDate(transaksiTransferArray.T[j].tanggalTransaksi, yy, mm, dd);
                             writeln(format('Tanggal transaksi: %d-%d-%d', [dd,mm,yy]));
                         end;
-                end;
 
                 for j := 1 to pembayaranArray.Neff do
-                begin
                     if temp_rekeningOnlineArray.T[i].nomorAkun = pembayaranArray.T[j].nomorAkun then
-                    begin
                         if Date - periode <= pembayaranArray.T[j].tanggalTransaksi then
                         begin
                             write('Nomor akun: ', pembayaranArray.T[j].nomorAkun, ' | ');
@@ -614,11 +626,8 @@ begin
                             DeCodeDate(pembayaranArray.T[j].tanggalTransaksi, yy, mm, dd);
                             writeln(format('Tanggal transaksi: %d-%d-%d', [dd,mm,yy]));
                         end;
-                    end;
-                end;
 
                 for j := 1 to pembelianArray.Neff do
-                begin
                     if temp_rekeningOnlineArray.T[i].nomorAkun = pembelianArray.T[j].nomorAkun then
                         if Date - periode <= pembelianArray.T[j].tanggalTransaksi then
                         begin
@@ -632,7 +641,6 @@ begin
                             DeCodeDate(pembelianArray.T[j].tanggalTransaksi, yy, mm, dd);
                             writeln(format('Tanggal transaksi: %d-%d-%d', [dd,mm,yy]));
                         end;
-                end;
             end
         else
             writeln('Periode aktivitas minimum 1 hari dan maksimum 3 bulan terakhir.')
@@ -655,7 +663,7 @@ var
     temp_rekeningOnline : TRekeningOnline;
 
     unitOfTime : string;
-    value : integer;
+    value : real;
     input : string;
     isValid : boolean = true;
 
@@ -672,96 +680,99 @@ begin
 
         readln(input);
         temp_rekeningOnline.nomorAkun := generateNomorAkun(index_nasabah, rekeningOnlineArray.Neff, input);
-        if (input = '1') or (input = 'Deposito') then
-        begin
-            temp_rekeningOnline.jenisRekening := 'Deposito';
 
-            writeln('Pilih mata uang: ');
-            writeln('1. Rupiah (IDR)');
-            writeln('2. US Dollar (USD)');
-            writeln('3. Euro (EUR)');
+        case LowerCase(input) of
+            '1', 'deposito' : begin
+                temp_rekeningOnline.jenisRekening := 'Deposito';
 
-            readln(input);
-            if (input = '1') or (input = 'Rupiah') or (input = 'IDR') then
-            begin
-                temp_rekeningOnline.mataUang := 'IDR';
-                repeat
-                    writeln('Masukkan setoran awal deposito minimum ', minimumDepositoIDR, ' IDR!');
-                    write('Saldo: '); readln(temp_rekeningOnline.saldo);
-                until (temp_rekeningOnline.saldo >= minimumDepositoIDR);
-            end else
-            if (input = '2') or (input = 'US Dollar') or (input = 'USD') then
-            begin
-                temp_rekeningOnline.mataUang := 'USD';
-                repeat
-                    writeln('Masukkan setoran awal deposito minimum ', minimumDepositoUSD, ' USD!');
-                    write('Saldo: '); readln(temp_rekeningOnline.saldo);
-                until (temp_rekeningOnline.saldo >= minimumDepositoUSD);
-            end else
-            if (input = '3') or (input = 'Euro') or (input = 'EUR') then
-            begin
-                temp_rekeningOnline.mataUang := 'EUR';
-                repeat
-                    writeln('Masukkan setoran awal deposito minimum ', minimumDepositoEUR, ' EUR!');
-                    write('Saldo: '); readln(temp_rekeningOnline.saldo);
-                until (temp_rekeningOnline.saldo >= minimumDepositoEUR);
-            end else
-                isValid := false;
-            
-            if isValid then
-            begin
-                temp_rekeningOnline.setoranRutin := 0;
+                writeln('Pilih mata uang: ');
+                writeln('1. Rupiah (IDR)');
+                writeln('2. US Dollar (USD)');
+                writeln('3. Euro (EUR)');
 
-                writeln('Masukkan rentang waktu deposito! (1 bulan/3 bulan/6 bulan/12 bulan)');
-                readln(value, unitOfTime);
-                if (unitOfTime = ' bulan') and ((value = 1) or (value = 3) or (value = 6) or (value = 12)) then
+                readln(input);
+                case input of
+                    '1', 'Rupiah', 'IDR' :
+                    begin
+                        temp_rekeningOnline.mataUang := 'IDR';
+                        repeat
+                            writeln('Masukkan setoran awal deposito minimum ', minimumDepositoIDR, ' IDR!');
+                            write('Saldo: '); readln(temp_rekeningOnline.saldo);
+                        until (temp_rekeningOnline.saldo >= minimumDepositoIDR);
+                    end;
+                    '2', 'US Dollar', 'USD' :
+                    begin
+                        temp_rekeningOnline.mataUang := 'USD';
+                        repeat
+                            writeln('Masukkan setoran awal deposito minimum ', minimumDepositoUSD, ' USD!');
+                            write('Saldo: '); readln(temp_rekeningOnline.saldo);
+                        until (temp_rekeningOnline.saldo >= minimumDepositoUSD);
+                    end;
+                    '3', 'Euro', 'EUR' :
+                    begin
+                        temp_rekeningOnline.mataUang := 'EUR';
+                        repeat
+                            writeln('Masukkan setoran awal deposito minimum ', minimumDepositoEUR, ' EUR!');
+                            write('Saldo: '); readln(temp_rekeningOnline.saldo);
+                        until (temp_rekeningOnline.saldo >= minimumDepositoEUR);
+                    end;
+                    else
+                        isValid := false;
+                end;
+                
+                if isValid then
                 begin
-                    temp_rekeningOnline.jangkaWaktu := value * 30;
+                    temp_rekeningOnline.setoranRutin := 0;
+
+                    writeln('Masukkan rentang waktu deposito! (1 bulan/3 bulan/6 bulan/12 bulan)');
+                    readln(value, unitOfTime);
+                    if (unitOfTime = ' bulan') and ((value = 1) or (value = 3) or (value = 6) or (value = 12)) then
+                    begin
+                        temp_rekeningOnline.jangkaWaktu := round(value * 30);
+                        temp_rekeningOnline.rekeningAutodebet := defineRekeningAutoDebet();
+                    end else
+                        isValid := false;
+                end;
+            end;
+            '2', 'tabungan rencana' : begin
+                temp_rekeningOnline.jenisRekening := 'Tabungan Rencana';
+                temp_rekeningOnline.mataUang := 'IDR';
+
+                repeat
+                    writeln('Masukkan setoran awal tabungan rencana minimum 0 IDR!');
+                    readln(temp_rekeningOnline.saldo);
+                until (temp_rekeningOnline.saldo >= 0);
+
+                repeat
+                    writeln('Masukkan setoran rutin tabungan rencana minimum ', minimumSetoranRutin, ' IDR!');
+                    readln(temp_rekeningOnline.setoranRutin);
+                until (temp_rekeningOnline.setoranRutin >= minimumSetoranRutin);
+
+                writeln('Masukkan jangka waktu tabungan rencana minimum 1 tahun dan maksimum 20 tahun!');
+                readln(value, unitOfTime);
+                if (unitOfTime = ' tahun') and (1 <= value) and (value <= 20) then
+                begin
+                    temp_rekeningOnline.jangkaWaktu := round(value * 365);
                     temp_rekeningOnline.rekeningAutodebet := defineRekeningAutoDebet();
                 end else
                     isValid := false;
             end;
-        end else
-        if (input = '2') or (input = 'Tabungan Rencana') then
-        begin
-            temp_rekeningOnline.jenisRekening := 'Tabungan Rencana';
-            temp_rekeningOnline.mataUang := 'IDR';
+            '3', 'tabungan mandiri' : begin
+                temp_rekeningOnline.jenisRekening := 'Tabungan Mandiri';
+                temp_rekeningOnline.mataUang := 'IDR';
 
-            repeat
-                writeln('Masukkan setoran awal tabungan rencana minimum 0 IDR!');
-                readln(temp_rekeningOnline.saldo);
-            until (temp_rekeningOnline.saldo >= 0);
+                repeat
+                    writeln('Masukkan setoran awal tabungan mandiri minimum ', minimumTabunganMandiri, ' IDR!');
+                    readln(temp_rekeningOnline.saldo);
+                until (temp_rekeningOnline.saldo >= minimumTabunganMandiri);
 
-            repeat
-                writeln('Masukkan setoran rutin tabungan rencana minimum ', minimumSetoranRutin, ' IDR!');
-                readln(temp_rekeningOnline.setoranRutin);
-            until (temp_rekeningOnline.setoranRutin >= minimumSetoranRutin);
-
-            writeln('Masukkan jangka waktu tabungan rencana minimum 1 tahun dan maksimum 20 tahun!');
-            readln(value, unitOfTime);
-            if (unitOfTime = ' tahun') and (1 <= value) and (value <= 20) then
-            begin
-                temp_rekeningOnline.jangkaWaktu := value * 365;
-                temp_rekeningOnline.rekeningAutodebet := defineRekeningAutoDebet();
-            end else
+                temp_rekeningOnline.setoranRutin := 0;
+                temp_rekeningOnline.jangkaWaktu := 0;
+                temp_rekeningOnline.rekeningAutodebet := '-';
+            end;
+            else
                 isValid := false;
-            
-        end else
-        if (input = '3') or (input = 'Tabungan Mandiri') then
-        begin
-            temp_rekeningOnline.jenisRekening := 'Tabungan Mandiri';
-            temp_rekeningOnline.mataUang := 'IDR';
-
-            repeat
-                writeln('Masukkan setoran awal tabungan mandiri minimum ', minimumTabunganMandiri, ' IDR!');
-                readln(temp_rekeningOnline.saldo);
-            until (temp_rekeningOnline.saldo >= minimumTabunganMandiri);
-
-            temp_rekeningOnline.setoranRutin := 0;
-            temp_rekeningOnline.jangkaWaktu := 0;
-            temp_rekeningOnline.rekeningAutodebet := '-';
-        end else
-            isValid := false;
+        end;
 
         temp_rekeningOnline.tanggalMulai := Date;
 
@@ -904,102 +915,108 @@ var
 
 (* ALGORITMA *)
 begin
-    temp_rekeningOnlineArray := getRekening(current_nasabah, true, true, true);
-    if temp_rekeningOnlineArray.Neff > 0 then
+    if transaksiTransferArray.Neff < NMax then
     begin
-        writeln('Pilih rekening Anda:');
-        WriteRekening(temp_rekeningOnlineArray);
+        temp_rekeningOnlineArray := getRekening(current_nasabah, true, true, true);
+        if temp_rekeningOnlineArray.Neff > 0 then
+        begin
+            writeln('Pilih rekening Anda:');
+            WriteRekening(temp_rekeningOnlineArray);
 
-        write('Rekening: ');
-        readln(temp_transaksiTransfer.nomorAkunAsal);
+            write('Rekening: ');
+            readln(temp_transaksiTransfer.nomorAkunAsal);
 
-        indexRekeningAsal := getIndexRekening(temp_transaksiTransfer.nomorAkunAsal, rekeningOnlineArray);
+            indexRekeningAsal := getIndexRekening(temp_transaksiTransfer.nomorAkunAsal, rekeningOnlineArray);
 
-        if indexRekeningAsal > 0 then
-            if isOwner(indexRekeningAsal, current_nasabah) then
-            begin
-                temp_transaksiTransfer.mataUang := rekeningOnlineArray.T[indexRekeningAsal].mataUang;
-
-                if rekeningOnlineArray.T[indexRekeningAsal].tanggalMulai + rekeningOnlineArray.T[indexRekeningAsal].jangkaWaktu <= Date then
+            if indexRekeningAsal > 0 then
+                if isOwner(indexRekeningAsal, current_nasabah) then
                 begin
-                    writeln('Pilih jenis transfer:');
-                    writeln('1. Dalam bank');
-                    writeln('2. Antar bank');
-                    readln(input);
+                    temp_transaksiTransfer.mataUang := rekeningOnlineArray.T[indexRekeningAsal].mataUang;
 
-                    if (input = '1') or (input = 'Dalam bank') or (input = 'dalam bank') then
+                    if rekeningOnlineArray.T[indexRekeningAsal].tanggalMulai + rekeningOnlineArray.T[indexRekeningAsal].jangkaWaktu <= Date then
                     begin
-                        temp_transaksiTransfer.jenisTransfer := 'dalam bank';
-                        temp_transaksiTransfer.namaBankLuar := '-';
-
-                        writeln('Nomor akun tujuan: ');
-                        readln(temp_transaksiTransfer.nomorAkunTujuan);
-
-                        indexRekeningTujuan := getIndexRekening(temp_transaksiTransfer.nomorAkunTujuan, rekeningOnlineArray);
-
-                        if not(indexRekeningTujuan > 0) then
-                        begin
-                            isValid := false;
-                            writeln('Rekening tujuan tidak ada dalam daftar rekening online.');
-                        end;
-                    end else
-                    if (input = '2') or (input = 'Antar bank') or (input = 'antar bank') then
-                    begin
-                        temp_transaksiTransfer.jenisTransfer := 'antar bank';
-
-                        writeln('Nama bank luar: ');
-                        readln(temp_transaksiTransfer.namaBankLuar);
-
-                        writeln('Nomor akun tujuan: ');
-                        readln(temp_transaksiTransfer.nomorAkunTujuan);
-
-                        writeln('Mata uang akun tujuan: ');
+                        writeln('Pilih jenis transfer:');
+                        writeln('1. Dalam bank');
+                        writeln('2. Antar bank');
                         readln(input);
+                        
+                        case LowerCase(input) of
+                            '1', 'dalam bank' : begin
+                                temp_transaksiTransfer.jenisTransfer := 'dalam bank';
+                                temp_transaksiTransfer.namaBankLuar := '-';
 
-                        if input = 'IDR' then biayaAdministrasi := getKurs('IDR', temp_transaksiTransfer.mataUang, BiayaAdministrasiIDR) else
-                        if input = 'USD' then biayaAdministrasi := getKurs('USD', temp_transaksiTransfer.mataUang, BiayaAdministrasiUSD) else
-                        if input = 'EUR' then biayaAdministrasi := getKurs('EUR', temp_transaksiTransfer.mataUang, BiayaAdministrasiEUR) else
+                                writeln('Nomor akun tujuan: ');
+                                readln(temp_transaksiTransfer.nomorAkunTujuan);
+
+                                indexRekeningTujuan := getIndexRekening(temp_transaksiTransfer.nomorAkunTujuan, rekeningOnlineArray);
+
+                                if not(indexRekeningTujuan > 0) then
+                                begin
+                                    isValid := false;
+                                    writeln('Rekening tujuan tidak ada dalam daftar rekening online.');
+                                end;
+                            end;
+                            '2', 'antar bank' : begin
+                                temp_transaksiTransfer.jenisTransfer := 'antar bank';
+
+                                writeln('Nama bank luar: ');
+                                readln(temp_transaksiTransfer.namaBankLuar);
+
+                                writeln('Nomor akun tujuan: ');
+                                readln(temp_transaksiTransfer.nomorAkunTujuan);
+
+                                writeln('Mata uang akun tujuan: ');
+                                readln(input);
+
+                                case input of
+                                    'IDR' : biayaAdministrasi := getKurs('IDR', temp_transaksiTransfer.mataUang, BiayaAdministrasiIDR);
+                                    'USD' : biayaAdministrasi := getKurs('USD', temp_transaksiTransfer.mataUang, BiayaAdministrasiUSD);
+                                    'EUR' : biayaAdministrasi := getKurs('EUR', temp_transaksiTransfer.mataUang, BiayaAdministrasiEUR);
+                                    else
+                                    begin
+                                        isValid := false;
+                                        writeln('Mata uang tidak tersedia.');
+                                    end;
+                                end;  
+                            end;
+                            else begin
+                                isValid := false;
+                                writeln('Input tidak valid.');
+                            end;
+                        end;  
+
+                        if isValid then
                         begin
-                           isValid := false;
-                           writeln('Mata uang tidak tersedia.');
+                            repeat
+                                writeln('Masukkan transfer diatas ', biayaAdministrasi, ' ', temp_transaksiTransfer.mataUang, '!');
+                                write('Transfer: ');
+                                readln(temp_transaksiTransfer.jumlah);
+                            until (temp_transaksiTransfer.jumlah > biayaAdministrasi);
+
+                            if rekeningOnlineArray.T[indexRekeningAsal].saldo - temp_transaksiTransfer.jumlah >= 0 then
+                            begin
+                                rekeningOnlineArray.T[indexRekeningAsal].saldo := rekeningOnlineArray.T[indexRekeningAsal].saldo - temp_transaksiTransfer.jumlah;
+                                
+                                if temp_transaksiTransfer.jenisTransfer = 'dalam bank' then
+                                    rekeningOnlineArray.T[indexRekeningTujuan].saldo := rekeningOnlineArray.T[indexRekeningTujuan].saldo + getKurs(rekeningOnlineArray.T[indexRekeningAsal].mataUang, rekeningOnlineArray.T[indexRekeningTujuan].mataUang, temp_transaksiTransfer.jumlah - biayaAdministrasi);
+                                
+                                temp_transaksiTransfer.saldo := rekeningOnlineArray.T[indexRekeningAsal].saldo;
+                                temp_transaksiTransfer.tanggalTransaksi := Date;
+
+                                transaksiTransferArray.Neff := transaksiTransferArray.Neff + 1;
+                                transaksiTransferArray.T[transaksiTransferArray.Neff] := temp_transaksiTransfer;
+                            end else
+                                writeln('Penarikan ditolak. Jumlah transfer lebih besar dari jumlah dana yang ada di dalam rekening.');
                         end;
                     end else
-                    begin
-                        isValid := false;
-                        writeln('Input tidak valid.');
-                    end;
-
-                    if isValid then
-                    begin
-                        repeat
-                            writeln('Masukkan transfer diatas ', biayaAdministrasi, ' ', temp_transaksiTransfer.mataUang, '!');
-                            write('Transfer: ');
-                            readln(temp_transaksiTransfer.jumlah);
-                        until (temp_transaksiTransfer.jumlah > biayaAdministrasi);
-
-                        if rekeningOnlineArray.T[indexRekeningAsal].saldo - temp_transaksiTransfer.jumlah >= 0 then
-                        begin
-                            rekeningOnlineArray.T[indexRekeningAsal].saldo := rekeningOnlineArray.T[indexRekeningAsal].saldo - temp_transaksiTransfer.jumlah;
-                            
-                            if temp_transaksiTransfer.jenisTransfer = 'dalam bank' then
-                                rekeningOnlineArray.T[indexRekeningTujuan].saldo := rekeningOnlineArray.T[indexRekeningTujuan].saldo + getKurs(rekeningOnlineArray.T[indexRekeningAsal].mataUang, rekeningOnlineArray.T[indexRekeningTujuan].mataUang, temp_transaksiTransfer.jumlah - biayaAdministrasi);
-                            
-                            temp_transaksiTransfer.saldo := rekeningOnlineArray.T[indexRekeningAsal].saldo;
-                            temp_transaksiTransfer.tanggalTransaksi := Date;
-
-                            transaksiTransferArray.Neff := transaksiTransferArray.Neff + 1;
-                            transaksiTransferArray.T[transaksiTransferArray.Neff] := temp_transaksiTransfer;
-                        end else
-                            writeln('Penarikan ditolak. Jumlah transfer lebih besar dari jumlah dana yang ada di dalam rekening.');
-                    end;
+                        writeln('Penarikan ditolak. Tanggal jatuh tempo belum terpenuhi.');
                 end else
-                    writeln('Penarikan ditolak. Tanggal jatuh tempo belum terpenuhi.');
-            end else
-                writeln('Anda tidak mempunyai rekening ', temp_transaksiTransfer.nomorAkunAsal, '.')
-        else
-            writeln('Rekening asal tidak ada dalam daftar rekening online.');
-    end else
-        writeln('Anda tidak mempunyai rekening.');
+                    writeln('Anda tidak mempunyai rekening ', temp_transaksiTransfer.nomorAkunAsal, '.')
+            else
+                writeln('Rekening asal tidak ada dalam daftar rekening online.');
+        end else
+            writeln('Anda tidak mempunyai rekening.');
+    end;
 end;
 
 procedure Pembayaran();
@@ -1049,16 +1066,18 @@ begin
                         writeln('9. Pendidikan');
 
                         readln(jenisPembayaran);
-                        if jenisPembayaran = 1 then temp_pembayaran.jenisTransaksi := 'listrik' else
-                        if jenisPembayaran = 2 then temp_pembayaran.jenisTransaksi := 'BPJS' else
-                        if jenisPembayaran = 3 then temp_pembayaran.jenisTransaksi := 'PDAM' else
-                        if jenisPembayaran = 4 then temp_pembayaran.jenisTransaksi := 'telepon' else
-                        if jenisPembayaran = 5 then temp_pembayaran.jenisTransaksi := 'TV kabel' else
-                        if jenisPembayaran = 6 then temp_pembayaran.jenisTransaksi := 'internet' else
-                        if jenisPembayaran = 7 then temp_pembayaran.jenisTransaksi := 'kartu kredit' else
-                        if jenisPembayaran = 8 then temp_pembayaran.jenisTransaksi := 'pajak' else
-                        if jenisPembayaran = 9 then temp_pembayaran.jenisTransaksi := 'pendidikan' else
-                            isValid := false;
+                        case jenisPembayaran of
+                            1 : temp_pembayaran.jenisTransaksi := 'listrik';
+                            2 : temp_pembayaran.jenisTransaksi := 'BPJS';
+                            3 : temp_pembayaran.jenisTransaksi := 'PDAM';
+                            4 : temp_pembayaran.jenisTransaksi := 'telepon';
+                            5 : temp_pembayaran.jenisTransaksi := 'TV kabel';
+                            6 : temp_pembayaran.jenisTransaksi := 'internet';
+                            7 : temp_pembayaran.jenisTransaksi := 'kartu kredit';
+                            8 : temp_pembayaran.jenisTransaksi := 'pajak';
+                            9 : temp_pembayaran.jenisTransaksi := 'pendidikan';
+                            else isValid := false;
+                        end;
 
                         if isValid then
                         begin
@@ -1213,52 +1232,53 @@ begin
 
                 readln(input);
 
-                if input = '1' then
-                begin
-                    pindah_rekeningOnlineArray := getRekening(current_nasabah, true, true, true);
-                    DeleteRekening(GetIndexRekening(rekeningOnlineArray.T[indexRekeningTutup].nomorAkun, pindah_rekeningOnlineArray), pindah_rekeningOnlineArray);
+                case input of
+                    '1' : begin
+                        pindah_rekeningOnlineArray := getRekening(current_nasabah, true, true, true);
+                        DeleteRekening(GetIndexRekening(rekeningOnlineArray.T[indexRekeningTutup].nomorAkun, pindah_rekeningOnlineArray), pindah_rekeningOnlineArray);
 
-                    if pindah_rekeningOnlineArray.Neff > 0 then
-                    begin
-                        writeln('Pilih rekening Anda:');
-                        WriteRekening(pindah_rekeningOnlineArray);
+                        if pindah_rekeningOnlineArray.Neff > 0 then
+                        begin
+                            writeln('Pilih rekening Anda:');
+                            WriteRekening(pindah_rekeningOnlineArray);
 
-                        write('Rekening: ');
-                        readln(input);
+                            write('Rekening: ');
+                            readln(input);
 
-                        indexRekeningPindah := GetIndexRekening(input, rekeningOnlineArray);
-                        if indexRekeningPindah > 0 then
-                            if isOwner(indexRekeningPindah, current_nasabah) then
-                            begin
-                                hariJatuhTempo := rekeningOnlineArray.T[indexRekeningTutup].tanggalMulai + rekeningOnlineArray.T[indexRekeningTutup].jangkaWaktu;
-                                if Date < hariJatuhTempo then
+                            indexRekeningPindah := GetIndexRekening(input, rekeningOnlineArray);
+                            if indexRekeningPindah > 0 then
+                                if isOwner(indexRekeningPindah, current_nasabah) then
                                 begin
-                                    if rekeningOnlineArray.T[indexRekeningTutup].jenisRekening = 'Tabungan Rencana' then
-                                        rekeningOnlineArray.T[indexRekeningTutup].saldo := rekeningOnlineArray.T[indexRekeningTutup].saldo - Biaya - BiayaTambahan
-                                    else
-                                    if rekeningOnlineArray.T[indexRekeningTutup].jenisRekening = 'Deposito' then
-                                        rekeningOnlineArray.T[indexRekeningTutup].saldo := rekeningOnlineArray.T[indexRekeningTutup].saldo - getKurs('IDR', rekeningOnlineArray.T[indexRekeningTutup].mataUang, Biaya + PenaltiPerhari * daysBetween(hariJatuhTempo, Date));
+                                    hariJatuhTempo := rekeningOnlineArray.T[indexRekeningTutup].tanggalMulai + rekeningOnlineArray.T[indexRekeningTutup].jangkaWaktu;
+                                    if Date < hariJatuhTempo then
+                                    begin
+                                        if rekeningOnlineArray.T[indexRekeningTutup].jenisRekening = 'Tabungan Rencana' then
+                                            rekeningOnlineArray.T[indexRekeningTutup].saldo := rekeningOnlineArray.T[indexRekeningTutup].saldo - Biaya - BiayaTambahan
+                                        else
+                                        if rekeningOnlineArray.T[indexRekeningTutup].jenisRekening = 'Deposito' then
+                                            rekeningOnlineArray.T[indexRekeningTutup].saldo := rekeningOnlineArray.T[indexRekeningTutup].saldo - getKurs('IDR', rekeningOnlineArray.T[indexRekeningTutup].mataUang, Biaya + PenaltiPerhari * daysBetween(hariJatuhTempo, Date));
+                                    end else
+                                        rekeningOnlineArray.T[indexRekeningTutup].saldo := rekeningOnlineArray.T[indexRekeningTutup].saldo - getKurs('IDR', rekeningOnlineArray.T[indexRekeningTutup].mataUang, Biaya);
+                                    if rekeningOnlineArray.T[indexRekeningTutup].saldo < 0 then rekeningOnlineArray.T[indexRekeningTutup].saldo := 0;
+
+                                    rekeningOnlineArray.T[indexRekeningPindah].saldo := rekeningOnlineArray.T[indexRekeningPindah].saldo + getKurs(rekeningOnlineArray.T[indexRekeningTutup].mataUang, rekeningOnlineArray.T[indexRekeningPindah].mataUang, rekeningOnlineArray.T[indexRekeningTutup].saldo);
+                                    rekeningOnlineArray.T[indexRekeningTutup].saldo := 0;
+
+                                    DeleteRekening(indexRekeningTutup, rekeningOnlineArray);
                                 end else
-                                    rekeningOnlineArray.T[indexRekeningTutup].saldo := rekeningOnlineArray.T[indexRekeningTutup].saldo - getKurs('IDR', rekeningOnlineArray.T[indexRekeningTutup].mataUang, Biaya);
-                                if rekeningOnlineArray.T[indexRekeningTutup].saldo < 0 then rekeningOnlineArray.T[indexRekeningTutup].saldo := 0;
-
-                                rekeningOnlineArray.T[indexRekeningPindah].saldo := rekeningOnlineArray.T[indexRekeningPindah].saldo + getKurs(rekeningOnlineArray.T[indexRekeningTutup].mataUang, rekeningOnlineArray.T[indexRekeningPindah].mataUang, rekeningOnlineArray.T[indexRekeningTutup].saldo);
-                                rekeningOnlineArray.T[indexRekeningTutup].saldo := 0;
-
-                                DeleteRekening(indexRekeningTutup, rekeningOnlineArray);
-                            end else
-                                writeln('Anda tidak mempunyai rekening ', input, '.')
-                        else
-                            writeln('Rekening tidak ada dalam daftar rekening online.');
-                    end else
-                        writeln('Anda tidak mempunyai rekening pindah.');
-                end else
-                if input = '2' then
-                begin
-                    rekeningOnlineArray.T[indexRekeningTutup].saldo := 0;
-                    DeleteRekening(indexRekeningTutup, rekeningOnlineArray);
-                end else
-                    writeln('Input tidak valid');
+                                    writeln('Anda tidak mempunyai rekening ', input, '.')
+                            else
+                                writeln('Rekening tidak ada dalam daftar rekening online.');
+                        end else
+                            writeln('Anda tidak mempunyai rekening pindah.');
+                    end;
+                    '2' : begin
+                        rekeningOnlineArray.T[indexRekeningTutup].saldo := 0;
+                        DeleteRekening(indexRekeningTutup, rekeningOnlineArray);
+                    end;
+                    else
+                        writeln('Input tidak valid');
+                end;
             end else
                 writeln('Anda tidak mempunyai rekening ', input, '.')
         else
@@ -1389,22 +1409,24 @@ begin
     repeat
         write('> ');
         readln(command);
-        if command = 'loadall' then LoadAll() else
-        if command = 'load' then Load() else
-        if command = 'login' then if index_nasabah = 0 then Login() else writeln('Anda telah login.') else
-        if command = 'lihatRekening' then LihatRekening() else
-        if command = 'informasiSaldo' then InformasiSaldo() else
-        if command = 'lihatAktivitasTransaksi' then LihatAktivitasTransaksi() else
-        if command = 'pembuatanRekening' then PembuatanRekening() else
-        if command = 'setoran' then Setoran() else
-        if command = 'penarikan' then Penarikan() else
-        if command = 'transfer' then Transfer() else
-        if command = 'pembayaran' then Pembayaran() else
-        if command = 'pembelian' then Pembelian() else
-        if command = 'penutupanRekening' then PenutupanRekening() else
-        if command = 'perubahanDataNasabah' then PerubahanDataNasabah() else
-        if command = 'penambahanAutoDebet' then PenambahanAutoDebet() else
-        if command = 'exit' then Exit() else
-            writeln('Pemberian perintah salah')
+        case command of
+            'loadall' : LoadAll();
+            'load' : Load();
+            'login' : Login() ;
+            'lihatRekening' : LihatRekening();
+            'informasiSaldo' : InformasiSaldo();
+            'lihatAktivitasTransaksi' : LihatAktivitasTransaksi();
+            'pembuatanRekening' : PembuatanRekening();
+            'setoran' : Setoran();
+            'penarikan' : Penarikan();
+            'transfer' : Transfer();
+            'pembayaran' : Pembayaran();
+            'pembelian' : Pembelian();
+            'penutupanRekening' : PenutupanRekening();
+            'perubahanDataNasabah' : PerubahanDataNasabah();
+            'penambahanAutoDebet' : PenambahanAutoDebet();
+            'exit' : Exit();
+            else writeln('Pemberian perintah salah')
+        end;
     until command = 'exit';
 end.
