@@ -43,7 +43,10 @@ begin
                 indexRekening := GetIndexRekening(nomorAkun, rekeningOnlineArray);
                 if indexRekening > 0 then
                     if isOwner(current_nasabah, indexRekening, rekeningOnlineArray) then
-                        defineRekeningAutoDebet := nomorAkun
+                        if rekeningOnlineArray.T[indexRekening].jenisRekening = 'Tabungan Mandiri' then
+                            defineRekeningAutoDebet := nomorAkun
+                        else
+                            writeln('Rekening bukan Tabungan Mandiri.')
                     else
                         writeln('Anda tidak mempunyai rekening ', nomorAkun, '.')
                 else 
@@ -54,28 +57,19 @@ begin
         defineRekeningAutoDebet := '-';
 end;
 
-procedure LoadAll();
-begin
-    LoadNasabah('nasabah.bin', nasabahArray);
-    LoadRekeningOnline('rekeningonline.bin', rekeningOnlineArray);
-    LoadTransaksiSetoranPenarikan('transaksisetoranpenarikan.bin', transaksiSetoranPenarikanArray);
-    LoadTransaksiTransfer('transaksitransfer.bin', transaksiTransferArray);
-    LoadPembayaran('pembayaran.bin', pembayaranArray);
-    LoadPembelian('pembelian.bin', pembelianArray);
-    LoadNilaiTukarAntarMataUang('nilaitukarantarmatauang.bin', nilaiTukarAntarMataUangArray);
-    LoadBarang('barang.bin', barangArray);
-end;
-
-(* Tugas *)
 procedure Load();
 var
     fileName : string;
+    i : integer;
 begin
     write('nama file: ');
     readln(fileName);
 
     case fileName of
-        'nasabah.bin' : LoadNasabah(filename, nasabahArray);
+        'nasabah.bin' : begin
+            LoadNasabah(filename, nasabahArray);
+            for i := 1 to nasabahArray.Neff do triesArray[i] := 0;
+        end;
         'rekeningonline.bin' : LoadRekeningOnline(filename, rekeningOnlineArray);
         'transaksisetoranpenarikan.bin' : LoadTransaksiSetoranPenarikan(filename, transaksiSetoranPenarikanArray);
         'transaksitransfer.bin' : LoadTransaksiTransfer(filename, transaksiTransferArray);
@@ -182,24 +176,24 @@ begin
             write('Rekening ', input, ': ');
             readln(input);
 
-            indexRekening := getIndexRekening(input, temp_rekeningOnlineArray);
+            indexRekening := getIndexRekening(input, rekeningOnlineArray);
             if indexRekening > 0 then
                 if isOwner(current_nasabah, indexRekening, rekeningOnlineArray) then
                 begin
-                    writeln('Nomor rekening: ', temp_rekeningOnlineArray.T[indexRekening].nomorAkun);
-                    DeCodeDate(temp_rekeningOnlineArray.T[indexRekening].tanggalMulai, yy, mm, dd);
+                    writeln('Nomor rekening: ', rekeningOnlineArray.T[indexRekening].nomorAkun);
+                    DeCodeDate(rekeningOnlineArray.T[indexRekening].tanggalMulai, yy, mm, dd);
                     writeln(format('Tanggal mulai: %d-%d-%d', [dd,mm,yy]));
-                    writeln('Mata uang: ', temp_rekeningOnlineArray.T[indexRekening].mataUang);
-                    jangkaWaktuTahun := temp_rekeningOnlineArray.T[indexRekening].jangkaWaktu div 365;
-                    jangkaWaktuBulan := temp_rekeningOnlineArray.T[indexRekening].jangkaWaktu mod 365 div 30;
-                    jangkaWaktuHari := temp_rekeningOnlineArray.T[indexRekening].jangkaWaktu mod 30;
+                    writeln('Mata uang: ', rekeningOnlineArray.T[indexRekening].mataUang);
+                    jangkaWaktuTahun := rekeningOnlineArray.T[indexRekening].jangkaWaktu div 365;
+                    jangkaWaktuBulan := rekeningOnlineArray.T[indexRekening].jangkaWaktu mod 365 div 30;
+                    jangkaWaktuHari := rekeningOnlineArray.T[indexRekening].jangkaWaktu mod 365 mod 30;
                     if jangkaWaktuTahun > 0 then jangkaWaktu := IntToStr(jangkaWaktuTahun) + ' tahun ';
                     if jangkaWaktuBulan > 0 then jangkaWaktu := jangkaWaktu + IntToStr(jangkaWaktuBulan) + ' bulan ';
                     if jangkaWaktuHari > 0 then jangkaWaktu := jangkaWaktu + IntToStr(jangkaWaktuHari) + ' hari ';
                     writeln('Jangka waktu: ', jangkaWaktu);
-                    writeln('Setoran rutin: ', temp_rekeningOnlineArray.T[indexRekening].setoranRutin);
-                    writeln('Saldo: ', temp_rekeningOnlineArray.T[indexRekening].saldo);
-                    writeln('Rekening autodebet: ', temp_rekeningOnlineArray.T[indexRekening].rekeningAutodebet);
+                    writeln('Setoran rutin: ', rekeningOnlineArray.T[indexRekening].setoranRutin);
+                    writeln('Saldo: ', rekeningOnlineArray.T[indexRekening].saldo);
+                    writeln('Rekening autodebet: ', rekeningOnlineArray.T[indexRekening].rekeningAutodebet);
                 end else
                     writeln('Anda tidak mempunyai rekening ', input, '.')
             else
@@ -985,7 +979,7 @@ begin
         tabunganMandiri_rekeningOnlineArray := getRekening(current_nasabah, rekeningOnlineArray, true, false, false);
         if tabunganMandiri_rekeningOnlineArray.Neff > 0 then
         begin
-            writeln('Pilih rekening Tabungan Rencana atau Deposito Anda:');
+            writeln('Pilih rekening Deposito atau Tabungan Rencana Anda:');
             WriteRekening(temp_rekeningOnlineArray);
 
             readln(nomorAkun);
@@ -1008,7 +1002,10 @@ begin
                         j := getIndexRekening(nomorAkun, rekeningOnlineArray);
                         if j > 0 then
                             if isOwner(current_nasabah, j, rekeningOnlineArray) then
-                                rekeningOnlineArray.T[i].rekeningAutodebet := nomorAkun
+                                if rekeningOnlineArray.T[j].jenisRekening = 'Tabungan Mandiri' then
+                                    rekeningOnlineArray.T[i].rekeningAutodebet := nomorAkun
+                                else
+                                    writeln('Rekening bukan Tabungan Mandiri.')
                             else
                                 writeln('Anda tidak mempunyai rekening ', nomorAkun, '.')
                         else 
@@ -1021,7 +1018,7 @@ begin
         end else
             writeln('Anda tidak mempunyai Tabungan Mandiri.');       
     end else
-        writeln('Anda tidak mempunyai Tabungan Rencana.');
+        writeln('Anda tidak mempunyai Deposito dan Tabungan Rencana.');
 end;
 
 procedure Exit();
@@ -1043,12 +1040,11 @@ begin
     pembelianArray.Neff := 0;
     nilaiTukarAntarMataUangArray.Neff := 0;
     barangArray.Neff := 0;
-
+    
     repeat
         write('> ');
         readln(command);
         case command of
-            'loadall' : LoadAll();
             'load' : Load();
             'login' : Login() ;
             'lihatRekening' : LihatRekening();
